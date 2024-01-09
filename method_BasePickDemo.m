@@ -1,0 +1,84 @@
+load('Synthetic_100HzRick.mat');
+fs=2000;
+data=yc_scale(data,2);
+x=data(:,1);noisex=awgn(x,-5,'measured');
+y=data(:,2);noisey=awgn(y,-5,'measured');
+z=data(:,3);noisez=awgn(z,-5,'measured');
+xx=linspace(1/fs,length(z)/fs,length(z));
+q=55;
+features= Feature_ext([noisex,noisey,noisez],q,0,'Power','Std','L');
+[~,U,~]=yc_fcm(features,2);
+if sum(U(1,:))>sum(U(2,:))   
+    t=U(1,:);
+    U(1,:)=U(2,:);
+    U(2,:)=t;    
+end
+eps=0.4;
+index2 = find(U(1,:)>eps);
+if sum(abs(U(1,1:2*q))) < sum(abs(U(2,1:3*q)))
+    n_onset=min(find(U(1,:)>eps));
+else
+    n_onset=min(find(U(2,:)>eps));
+end
+O=n_onset;
+noisedata=[noisex,noisey,noisez];
+noisedata=yc_scale(noisedata,2);
+noisex=noisedata(:,1);
+noisey=noisedata(:,2);
+noisez=noisedata(:,3);
+figure1 = figure('OuterPosition',...
+    [3272.333333333333,239.6666666666667,1212,998.6666666666666]);
+subplot1 = subplot(5,1,1);
+hold(subplot1,'on');
+plot(xx,x','color',[0.9290 0.6940 0.1250],'LineWidth',1.5);xlim([0,0.15]);
+plot(xx,y','color','c','LineWidth',1.5);xlim([0,0.15]);
+plot(xx,z','color','b','LineWidth',1.5);xlim([0,0.15]);
+plot([xx(index2(1)),xx(index2(1))],[-1,1],'--g','LineWidth',1.5); 
+plot([89/2000,89/2000],[-1,1],'color','m','LineWidth',1.5);
+title('Clean Signal');
+box(subplot1,'on');
+hold(subplot1,'off');
+set(subplot1,'FontSize',15);
+subplot2 = subplot(5,1,2);
+hold(subplot2,'on');
+plot(xx,noisex','color',[0.9290 0.6940 0.1250],'LineWidth',1.5);xlim([0,0.15]);ylim([-1,1]);
+plot(xx,noisey','color','c','LineWidth',1.5);xlim([0,0.15]);ylim([-1,1]);
+plot(xx,noisez','color','b','LineWidth',1.5);xlim([0,0.15]);ylim([-1,1]);
+plot([xx(index2(1)),xx(index2(1))],[-1,1],'--g','LineWidth',1.5);
+plot([89/2000,89/2000],[-1,1],'color','m','LineWidth',1.5);
+title('Noisey Signal');
+box(subplot2,'on');
+hold(subplot2,'off');
+set(subplot2,'FontSize',15);
+subplot3 = subplot(5,1,3);
+hold(subplot3,'on');
+plot(xx,features(:,1)','color','r','LineWidth',1.5);ylim([-1,1]);xlim([0,0.15]);
+plot(xx,features(:,2)','color','g','LineWidth',1.5);ylim([-1,1]);xlim([0,0.15]);
+plot(xx,features(:,3)','color','b','LineWidth',1.5);ylim([-1,1]);xlim([0,0.15]);
+plot([89/2000,89/2000],[-1,1],'color','m','LineWidth',1.5);
+plot([xx(index2(1)),xx(index2(1))],[-1,1],'--g','LineWidth',1.5);
+title('Features');
+box(subplot3,'on');
+hold(subplot3,'off');
+set(subplot3,'FontSize',15);
+subplot4 = subplot(5,1,4);
+hold(subplot4,'on');
+plot(xx',U(1,:),'color','b','LineWidth',1.5);zlim([0,1]);
+plot(xx',eps*ones(1,length(z)),'color','r','LineWidth',1.5);
+plot([89/2000,89/2000],[0,1],'color','m','LineWidth',1.5);
+plot([xx(index2(1)),xx(index2(1))],[0,1],'--g','LineWidth',1.5);
+title('Membership Degree of Signal Clustering');
+box(subplot4,'on');
+hold(subplot4,'off');
+set(subplot4,'FontSize',15);
+subplot5=subplot(515);
+hold(subplot5,'on')
+plot(xx',noisez,'color','b','LineWidth',1.5);ylim([-1,1]);
+plot([89/2000,89/2000],[-1,1],'color','m','LineWidth',1.5);
+plot(xx(89:149)',noisez(89:149),'go','LineWidth',2);
+plot(xx(index2)',noisez(index2),'r','LineWidth',2);
+plot([xx(index2(1)),xx(index2(1))],[-1,1],'--g','LineWidth',1.5);
+title('Classification Result');
+box(subplot5,'on');
+hold(subplot5,'off');
+set(subplot5,'FontSize',15);
